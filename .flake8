@@ -1,3 +1,0 @@
-[flake8]
-# omit warnings where lines are too long
-ignore = E501

@@ -1,6 +1,6 @@
 # Advent of Code 2019
 
-Repository for my solutions to the [Advent of Code 2019](https://adventofcode.com/2019 "Advent of Code 2019 Startpage") written in Python 3.
+Repository for my solutions to the [Advent of Code 2019](https://adventofcode.com/2019 "Advent of Code 2019 Startpage") written in Python 3
 
 ## Progress
 
