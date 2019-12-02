@@ -51,7 +51,7 @@ def solve_task2():
             output = int(final_state.split(',')[0])
             if output == 19690720:
                 break
-        print(f'answer to task 2: {100 * noun + verb}')
+        print(f'answer to task 2: {100 * noun + verb}')  # pylint: disable=undefined-loop-variable
 
 
 def main():
