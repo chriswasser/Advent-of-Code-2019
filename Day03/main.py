@@ -2,7 +2,6 @@
 
 from collections import namedtuple
 import fileinput
-import itertools
 
 
 Point = namedtuple('Point', field_names=['x', 'y'], defaults=[0, 0])
@@ -12,112 +11,85 @@ def manhattan_distance(point1, point2):
     return abs(point1.x - point2.x) + abs(point1.y - point2.y)
 
 
+def move(point, direction):
+    x, y = point
+    if direction == 'U':
+        y += 1
+    elif direction == 'D':
+        y -= 1
+    elif direction == 'R':
+        x += 1
+    elif direction == 'L':
+        x -= 1
+    return Point(x, y)
+
+
+def path(wire):
+    path_, point, steps = dict(), Point(), 0
+    for instruction in wire.split(','):
+        direction, num_fields = instruction[:1], int(instruction[1:])
+        for _ in range(num_fields):
+            point, steps = move(point, direction), steps + 1
+            if point not in path_:
+                path_[point] = steps
+    return path_
+
+
+def intersections(wire1, wire2):
+    path_wire1, path_wire2 = path(wire1), path(wire2)
+    intersections_ = {
+        point: path_wire1[point] + path_wire2[point]
+        for point in path_wire1.keys() & path_wire2.keys()
+    }
+    return intersections_
+
+
+def distance_closest_intersection(wire1, wire2):
+    intersections_ = intersections(wire1, wire2)
+    closest_point = min(intersections_.keys(), key=lambda point: manhattan_distance(Point(), point))
+    distance = manhattan_distance(Point(), closest_point)
+    return distance
+
+
+def steps_cheapest_intersection(wire1, wire2):
+    intersections_ = intersections(wire1, wire2)
+    cheapest_intersection = min(intersections_.items(), key=lambda item: item[1])
+    steps = cheapest_intersection[1]
+    return steps
+
+
 def test_task1():
-    assert True
+    assert distance_closest_intersection('R8,U5,L5,D3', 'U7,R6,D4,L4') == 6
+    assert distance_closest_intersection(
+        'R75,D30,R83,U83,L12,D49,R71,U7,L72', 'U62,R66,U55,R34,D71,R55,D58,R83'
+    ) == 159
+    assert distance_closest_intersection(
+        'R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51', 'U98,R91,D20,R16,D67,R40,U7,R15,U6,R7'
+    ) == 135
     print('tests for task 1: ok')
 
 
 def solve_task1():
-    central_point = Point()
-
-    wires = []
-    for line in fileinput.input():
-        wire = set()
-        position = central_point
-        moves = line.split(',')
-        for move in moves:
-            direction, num_fields = move[:1], int(move[1:])
-            x, y = position
-            if direction == 'U':
-                for _ in range(num_fields):
-                    y += 1
-                    position = Point(x, y)
-                    wire.add(position)
-            elif direction == 'D':
-                for _ in range(num_fields):
-                    y -= 1
-                    position = Point(x, y)
-                    wire.add(position)
-            elif direction == 'R':
-                for _ in range(num_fields):
-                    x += 1
-                    position = Point(x, y)
-                    wire.add(position)
-            elif direction == 'L':
-                for _ in range(num_fields):
-                    x -= 1
-                    position = Point(x, y)
-                    wire.add(position)
-        wires.append(wire)
-
-    intersections = set()
-    for wire1, wire2 in itertools.product(wires, wires):
-        if wire1 == wire2:
-            continue
-        intersections |= wire1 & wire2
-
-    closest_intersection = min(intersections,
-                               key=lambda point: manhattan_distance(central_point, point))
-    solution = manhattan_distance(central_point, closest_intersection)
-    print(f'answer to task 1: {solution}')
+    wire1, wire2 = [line for line in fileinput.input()]
+    distance = distance_closest_intersection(wire1, wire2)
+    print(f'answer to task 1: {distance}')
 
 
 def test_task2():
-    assert True
+    assert steps_cheapest_intersection('R8,U5,L5,D3', 'U7,R6,D4,L4') == 30
+    assert steps_cheapest_intersection(
+        'R75,D30,R83,U83,L12,D49,R71,U7,L72', 'U62,R66,U55,R34,D71,R55,D58,R83'
+    ) == 610
+    assert steps_cheapest_intersection(
+        'R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51', 'U98,R91,D20,R16,D67,R40,U7,R15,U6,R7'
+    ) == 410
     print('tests for task 2: ok')
 
 
 def solve_task2():
-    central_point = Point()
-
-    wires = []
-    for line in fileinput.input():
-        wire = dict()
-        position, steps = central_point, 0
-        moves = line.split(',')
-        for move in moves:
-            direction, num_fields = move[:1], int(move[1:])
-            x, y = position
-            if direction == 'U':
-                for _ in range(num_fields):
-                    y += 1
-                    steps += 1
-                    position = Point(x, y)
-                    if position not in wire:
-                        wire[position] = steps
-            elif direction == 'D':
-                for _ in range(num_fields):
-                    y -= 1
-                    steps += 1
-                    position = Point(x, y)
-                    if position not in wire:
-                        wire[position] = steps
-            elif direction == 'R':
-                for _ in range(num_fields):
-                    x += 1
-                    steps += 1
-                    position = Point(x, y)
-                    if position not in wire:
-                        wire[position] = steps
-            elif direction == 'L':
-                for _ in range(num_fields):
-                    x -= 1
-                    steps += 1
-                    position = Point(x, y)
-                    if position not in wire:
-                        wire[position] = steps
-        wires.append(wire)
-
-    intersections = dict()
-    for wire1, wire2 in itertools.product(wires, wires):
-        if wire1 == wire2:
-            continue
-        for key1 in wire1:
-            if key1 in wire2:
-                intersections[key1] = wire1[key1] + wire2[key1]
-
-    solution = min(intersections.items(), key=lambda point: point[1])
-    print(f'answer to task 2: {solution[1]}')
+    wire1, wire2 = [line for line in fileinput.input()]
+    steps = steps_cheapest_intersection(wire1, wire2)
+    print(f'answer to task 2: {steps}')
 
 
 def main():

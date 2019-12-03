@@ -34,10 +34,10 @@ def test_task1():
 
 
 def solve_task1():
-    for line in fileinput.input():
-        final_state = execute(line, noun=12, verb=2)
-        output = int(final_state.split(',')[0])
-        print(f'answer to task 1: {output}')
+    program = [line for line in fileinput.input()][0]
+    final_state = execute(program, noun=12, verb=2)
+    output = int(final_state.split(',')[0])
+    print(f'answer to task 1: {output}')
 
 
 def test_task2():
@@ -45,13 +45,13 @@ def test_task2():
 
 
 def solve_task2():
-    for line in fileinput.input():
-        for noun, verb in itertools.product(range(100), range(100)):
-            final_state = execute(line, noun=noun, verb=verb)
-            output = int(final_state.split(',')[0])
-            if output == 19690720:
-                print(f'answer to task 2: {100 * noun + verb}')
-                break
+    program = [line for line in fileinput.input()][0]
+    for noun, verb in itertools.product(range(100), range(100)):
+        final_state = execute(program, noun=noun, verb=verb)
+        output = int(final_state.split(',')[0])
+        if output == 19690720:
+            print(f'answer to task 2: {100 * noun + verb}')
+            break
 
 
 def main():
