@@ -7,20 +7,10 @@ import fileinput
 Point = namedtuple('Point', field_names=['x', 'y'], defaults=[0, 0])
 
 
-def manhattan_distance(point1, point2):
-    return abs(point1.x - point2.x) + abs(point1.y - point2.y)
-
-
 def move(point, direction):
     x, y = point
-    if direction == 'U':
-        y += 1
-    elif direction == 'D':
-        y -= 1
-    elif direction == 'R':
-        x += 1
-    elif direction == 'L':
-        x -= 1
+    x += direction == 'R' or -(direction == 'L')
+    y += direction == 'U' or -(direction == 'D')
     return Point(x, y)
 
 
@@ -44,26 +34,26 @@ def intersections(wire1, wire2):
     return intersections_
 
 
-def distance_closest_intersection(wire1, wire2):
+def min_distance_intersection(wire1, wire2):
     intersections_ = intersections(wire1, wire2)
-    closest_point = min(intersections_.keys(), key=lambda point: manhattan_distance(Point(), point))
-    distance = manhattan_distance(Point(), closest_point)
-    return distance
+    distances = (abs(point.x) + abs(point.y) for point in intersections_.keys())
+    min_distance = min(distances)
+    return min_distance
 
 
-def steps_cheapest_intersection(wire1, wire2):
+def min_steps_intersection(wire1, wire2):
     intersections_ = intersections(wire1, wire2)
-    cheapest_intersection = min(intersections_.items(), key=lambda item: item[1])
-    steps = cheapest_intersection[1]
-    return steps
+    steps = (steps for steps in intersections_.values())
+    min_steps = min(steps)
+    return min_steps
 
 
 def test_task1():
-    assert distance_closest_intersection('R8,U5,L5,D3', 'U7,R6,D4,L4') == 6
-    assert distance_closest_intersection(
+    assert min_distance_intersection('R8,U5,L5,D3', 'U7,R6,D4,L4') == 6
+    assert min_distance_intersection(
         'R75,D30,R83,U83,L12,D49,R71,U7,L72', 'U62,R66,U55,R34,D71,R55,D58,R83'
     ) == 159
-    assert distance_closest_intersection(
+    assert min_distance_intersection(
         'R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51', 'U98,R91,D20,R16,D67,R40,U7,R15,U6,R7'
     ) == 135
     print('tests for task 1: ok')
@@ -71,16 +61,16 @@ def test_task1():
 
 def solve_task1():
     wire1, wire2 = [line for line in fileinput.input()]
-    distance = distance_closest_intersection(wire1, wire2)
+    distance = min_distance_intersection(wire1, wire2)
     print(f'answer to task 1: {distance}')
 
 
 def test_task2():
-    assert steps_cheapest_intersection('R8,U5,L5,D3', 'U7,R6,D4,L4') == 30
-    assert steps_cheapest_intersection(
+    assert min_steps_intersection('R8,U5,L5,D3', 'U7,R6,D4,L4') == 30
+    assert min_steps_intersection(
         'R75,D30,R83,U83,L12,D49,R71,U7,L72', 'U62,R66,U55,R34,D71,R55,D58,R83'
     ) == 610
-    assert steps_cheapest_intersection(
+    assert min_steps_intersection(
         'R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51', 'U98,R91,D20,R16,D67,R40,U7,R15,U6,R7'
     ) == 410
     print('tests for task 2: ok')
@@ -88,7 +78,7 @@ def test_task2():
 
 def solve_task2():
     wire1, wire2 = [line for line in fileinput.input()]
-    steps = steps_cheapest_intersection(wire1, wire2)
+    steps = min_steps_intersection(wire1, wire2)
     print(f'answer to task 2: {steps}')
 
 
