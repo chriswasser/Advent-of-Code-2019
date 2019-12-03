@@ -8,7 +8,7 @@ Repository for my solutions to the [Advent of Code 2019](https://adventofcode.co
 | --- | ------ | ------ |
 |   1 |      ✓ |      ✓ |
 |   2 |      ✓ |      ✓ |
-|   3 |        |        |
+|   3 |      ✓ |      ✓ |
 |   4 |        |        |
 |   5 |        |        |
 |   6 |        |        |
