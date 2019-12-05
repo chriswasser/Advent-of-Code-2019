@@ -4,87 +4,67 @@ from enum import IntEnum
 import fileinput
 
 
+class OPCODE(IntEnum):
+    ADD = 1
+    MULTIPLY = 2
+    INPUT = 3
+    OUTPUT = 4
+    JUMP_IF_TRUE = 5
+    JUMP_IF_FALSE = 6
+    LESS_THAN = 7
+    EQUALS = 8
+    HALT = 99
+
+
 class MODE(IntEnum):
     POSITION = 0
     IMMEDIATE = 1
+
+
+def parse_arguments(numbers, ip, num_arguments):
+    modes = reversed(str(numbers[ip] // 100).rjust(num_arguments, '0'))
+    arguments = numbers[ip+1:ip+1+num_arguments]
+    return [
+        numbers[argument] if int(mode) == MODE.POSITION else argument
+        for mode, argument in zip(modes, arguments)
+    ]
 
 
 def execute(program, system_id):
     numbers = [int(number) for number in program.split(',')]
     ip, output = 0, []
     while True:
-        opcode, modes = numbers[ip] % 100, numbers[ip] // 100
-
-        if opcode == 1:
-            modes, arguments = reversed(str(modes).rjust(2, '0')), numbers[ip+1:ip+3]
-            arguments = [
-                numbers[argument] if int(mode) == MODE.POSITION else argument
-                for mode, argument in zip(modes, arguments)
-            ]
+        opcode = numbers[ip] % 100
+        if opcode == OPCODE.ADD:
+            arguments = parse_arguments(numbers, ip, num_arguments=2)
             numbers[numbers[ip+3]] = arguments[0] + arguments[1]
-            ip += 3 + 1
-        elif opcode == 2:
-            modes, arguments = reversed(str(modes).rjust(2, '0')), numbers[ip+1:ip+3]
-            arguments = [
-                numbers[argument] if int(mode) == MODE.POSITION else argument
-                for mode, argument in zip(modes, arguments)
-            ]
+            ip += 4
+        elif opcode == OPCODE.MULTIPLY:
+            arguments = parse_arguments(numbers, ip, num_arguments=2)
             numbers[numbers[ip+3]] = arguments[0] * arguments[1]
-            ip += 3 + 1
-        elif opcode == 3:
+            ip += 4
+        elif opcode == OPCODE.INPUT:
             numbers[numbers[ip+1]] = system_id
-            ip += 1 + 1
-        elif opcode == 4:
-            modes, arguments = reversed(str(modes).rjust(1, '0')), numbers[ip+1:ip+2]
-            arguments = [
-                numbers[argument] if int(mode) == MODE.POSITION else argument
-                for mode, argument in zip(modes, arguments)
-            ]
+            ip += 2
+        elif opcode == OPCODE.OUTPUT:
+            arguments = parse_arguments(numbers, ip, num_arguments=1)
             output.append(arguments[0])
-            ip += 1 + 1
-        elif opcode == 5:
-            modes, arguments = reversed(str(modes).rjust(2, '0')), numbers[ip+1:ip+3]
-            arguments = [
-                numbers[argument] if int(mode) == MODE.POSITION else argument
-                for mode, argument in zip(modes, arguments)
-            ]
-            if arguments[0] != 0:
-                ip = arguments[1]
-            else:
-                ip += 2 + 1
-        elif opcode == 6:
-            modes, arguments = reversed(str(modes).rjust(2, '0')), numbers[ip+1:ip+3]
-            arguments = [
-                numbers[argument] if int(mode) == MODE.POSITION else argument
-                for mode, argument in zip(modes, arguments)
-            ]
-            if arguments[0] == 0:
-                ip = arguments[1]
-            else:
-                ip += 2 + 1
-        elif opcode == 7:
-            modes, arguments = reversed(str(modes).rjust(2, '0')), numbers[ip+1:ip+3]
-            arguments = [
-                numbers[argument] if int(mode) == MODE.POSITION else argument
-                for mode, argument in zip(modes, arguments)
-            ]
-            if arguments[0] < arguments[1]:
-                numbers[numbers[ip+3]] = 1
-            else:
-                numbers[numbers[ip+3]] = 0
-            ip += 3 + 1
-        elif opcode == 8:
-            modes, arguments = reversed(str(modes).rjust(2, '0')), numbers[ip+1:ip+3]
-            arguments = [
-                numbers[argument] if int(mode) == MODE.POSITION else argument
-                for mode, argument in zip(modes, arguments)
-            ]
-            if arguments[0] == arguments[1]:
-                numbers[numbers[ip+3]] = 1
-            else:
-                numbers[numbers[ip+3]] = 0
-            ip += 3 + 1
-        elif opcode == 99:
+            ip += 2
+        elif opcode == OPCODE.JUMP_IF_TRUE:
+            arguments = parse_arguments(numbers, ip, num_arguments=2)
+            ip = arguments[1] if arguments[0] != 0 else ip + 3
+        elif opcode == OPCODE.JUMP_IF_FALSE:
+            arguments = parse_arguments(numbers, ip, num_arguments=2)
+            ip = arguments[1] if arguments[0] == 0 else ip + 3
+        elif opcode == OPCODE.LESS_THAN:
+            arguments = parse_arguments(numbers, ip, num_arguments=2)
+            numbers[numbers[ip+3]] = 1 if arguments[0] < arguments[1] else 0
+            ip += 4
+        elif opcode == OPCODE.EQUALS:
+            arguments = parse_arguments(numbers, ip, num_arguments=2)
+            numbers[numbers[ip+3]] = 1 if arguments[0] == arguments[1] else 0
+            ip += 4
+        elif opcode == OPCODE.HALT:
             break
     return output
 
