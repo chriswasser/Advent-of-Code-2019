@@ -26,7 +26,7 @@ def test_task1():
 
 
 def solve_task1():
-    number_range = [line for line in fileinput.input()][0]
+    number_range = [line.rstrip('\n') for line in fileinput.input()][0]
     lower, upper = map(int, number_range.split('-'))
     count = sum(
         1 for number in map(str, range(lower, upper + 1))
@@ -40,7 +40,7 @@ def test_task2():
 
 
 def solve_task2():
-    number_range = [line for line in fileinput.input()][0]
+    number_range = [line.rstrip('\n') for line in fileinput.input()][0]
     lower, upper = map(int, number_range.split('-'))
     count = sum(
         1 for number in map(str, range(lower, upper + 1))

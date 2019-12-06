@@ -25,7 +25,7 @@ def test_task1():
 
 
 def solve_task1():
-    total_fuel = sum(fuel(int(line)) for line in fileinput.input())
+    total_fuel = sum(fuel(int(line.rstrip('\n'))) for line in fileinput.input())
     print(f'answer to task 1: {total_fuel}')
 
 
@@ -37,7 +37,7 @@ def test_task2():
 
 
 def solve_task2():
-    total_fuel = sum(fuel_recursive(int(line)) for line in fileinput.input())
+    total_fuel = sum(fuel_recursive(int(line.rstrip('\n'))) for line in fileinput.input())
     print(f'answer to task 2: {total_fuel}')
 
 

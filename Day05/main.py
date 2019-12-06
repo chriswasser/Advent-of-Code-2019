@@ -70,14 +70,14 @@ def execute(program, system_id):
 
 
 def test_task1():
-    program = [line for line in fileinput.input()][0]
+    program = [line.rstrip('\n') for line in fileinput.input()][0]
     output = execute(program, system_id=1)
     assert all(number == 0 for number in output[:-1])
     print('tests for task 1: ok')
 
 
 def solve_task1():
-    program = [line for line in fileinput.input()][0]
+    program = [line.rstrip('\n') for line in fileinput.input()][0]
     output = execute(program, system_id=1)
     print(f'answer to task 1: {output[-1]}')
 
@@ -102,7 +102,7 @@ def test_task2():
 
 
 def solve_task2():
-    program = [line for line in fileinput.input()][0]
+    program = [line.rstrip('\n') for line in fileinput.input()][0]
     output = execute(program, system_id=5)
     print(f'answer to task 2: {output[0]}')
 
