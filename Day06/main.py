@@ -2,59 +2,64 @@
 
 from collections import defaultdict
 import fileinput
+import itertools
 
 import numpy as np
 
 
+def parse_graph(map_data):
+    adjacency_list = defaultdict(set)
+    for line in map_data:
+        orbitee, orbiter = line.split(')')
+        adjacency_list[orbiter].add(orbitee)
+    return adjacency_list
+
+
+def get_nodes(adjacency_list):
+    planets = set(adjacency_list).union(*adjacency_list.values())
+    planets = dict(map(reversed, enumerate(planets)))
+    return planets
+
+
+def get_matrix(adjacency_list, nodes, directed, fill, dtype):
+    adjaceny_matrix = np.full(shape=(len(nodes), len(nodes)), fill_value=fill, dtype=dtype)
+    for node, neighbours in adjacency_list.items():
+        for neighbour in neighbours:
+            adjaceny_matrix[nodes[node], nodes[neighbour]] = dtype(1)
+            if not directed:
+                adjaceny_matrix[nodes[neighbour], nodes[node]] = dtype(1)
+    return adjaceny_matrix
+
+
+# Floyd's algorithm (https://en.wikipedia.org/wiki/Floyd–Warshall_algorithm)
+def floyd(matrix):
+    for k, i, j in itertools.product(range(len(matrix)), repeat=3):
+        if matrix[i, j] > matrix[i, k] + matrix[k, j]:
+            matrix[i, j] = matrix[i, k] + matrix[k, j]
+
+
+# Warshall's algorithm (https://en.wikipedia.org/wiki/Floyd–Warshall_algorithm)
+def warshall(matrix):
+    for k, i, j in itertools.product(range(len(matrix)), repeat=3):
+        if matrix[i, k] and matrix[k, j]:
+            matrix[i, j] = True
+
+
 def num_orbits(map_data):
-    adjacency_list, planets = defaultdict(set), set()
-    for line in map_data:
-        orbitee, orbiter = line.split(')')
-        adjacency_list[orbiter].add(orbitee)
-        planets.add(orbitee)
-        planets.add(orbiter)
-
-    planets = dict(map(reversed, enumerate(planets)))
-    adjaceny_matrix = np.zeros(shape=(len(planets), len(planets)))
-    for orbiter in planets:
-        for orbitee in adjacency_list[orbiter]:
-            adjaceny_matrix[planets[orbiter], planets[orbitee]] = 1
-
-    # Floyd–Warshall (https://en.wikipedia.org/wiki/Floyd–Warshall_algorithm)
-    for k in range(len(planets)):
-        for i in range(len(planets)):
-            for j in range(len(planets)):
-                if adjaceny_matrix[i, k] == 1 and adjaceny_matrix[k, j] == 1:
-                    adjaceny_matrix[i, j] = 1
-    checksum = np.sum(adjaceny_matrix)
-    return checksum
+    adjacency_list = parse_graph(map_data)
+    planets = get_nodes(adjacency_list)
+    matrix = get_matrix(adjacency_list, nodes=planets, directed=True, fill=False, dtype=bool)
+    warshall(matrix)
+    orbits = np.sum(matrix)
+    return orbits
 
 
-def shortest_path(map_data):
-    adjacency_list, planets = defaultdict(set), set()
-    for line in map_data:
-        orbitee, orbiter = line.split(')')
-        adjacency_list[orbiter].add(orbitee)
-        planets.add(orbitee)
-        planets.add(orbiter)
-
-    planets = dict(map(reversed, enumerate(planets)))
-    adjaceny_matrix = np.zeros(shape=(len(planets), len(planets)))
-    adjaceny_matrix.fill(np.inf)
-    for orbiter in planets:
-        for orbitee in adjacency_list[orbiter]:
-            adjaceny_matrix[planets[orbiter], planets[orbitee]] = 1
-            adjaceny_matrix[planets[orbitee], planets[orbiter]] = 1
-
-    # Floyd–Warshall (https://en.wikipedia.org/wiki/Floyd–Warshall_algorithm)
-    for k in range(len(planets)):
-        for i in range(len(planets)):
-            for j in range(len(planets)):
-                adjaceny_matrix[i, j] = min(
-                    adjaceny_matrix[i, j],
-                    adjaceny_matrix[i, k] + adjaceny_matrix[k, j]
-                )
-    path = adjaceny_matrix[planets['YOU'], planets['SAN']] - 2
+def shortest_path(map_data, start='YOU', end='SAN'):
+    adjacency_list = parse_graph(map_data)
+    planets = get_nodes(adjacency_list)
+    matrix = get_matrix(adjacency_list, nodes=planets, directed=False, fill=np.inf, dtype=float)
+    floyd(matrix)
+    path = int(matrix[planets[start], planets[end]]) - 2
     return path
 
 
