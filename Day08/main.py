@@ -45,7 +45,6 @@ def solve_task2():
     final_image = np.zeros(shape=(height, width), dtype=int)
     for row in range(height):
         for column in range(width):
-            visible_pixel = None
             for level in range(levels):
                 if image[level, row, column] != 2:
                     final_image[row, column] = np.min(image[level, row, column])
@@ -53,10 +52,8 @@ def solve_task2():
 
     for row in range(height):
         for column in range(width):
-            if column % 5 == 4:
-                print(f'{final_image[row, column]} ', end='')
-            else:
-                print(f'{final_image[row, column]}', end='')
+            pixel = final_image[row, column] if final_image[row, column] != 0 else ' '
+            print(pixel, end='')
         print()
 
     solution = 'LRFKU'
