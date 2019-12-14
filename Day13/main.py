@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
+from collections import namedtuple
 from enum import IntEnum
 import fileinput
 
-import numpy as np
+import more_itertools as mit
 
 
 class OPCODE(IntEnum):
@@ -109,10 +110,18 @@ class TILE(IntEnum):
     BALL = 4
 
 
-class ArcadeGame():
+Tile = namedtuple('Tile', field_names=['x', 'y', 'symbol'])
 
-    def __init__(self):
-        pass
+
+def find_last_tile(outputs, predicate):
+    for symbol, x, y in mit.chunked(reversed(outputs), 3):
+        tile = Tile(x, y, symbol)
+        if predicate(tile):
+            return tile
+
+
+def clamp(value, low, high):
+    return max(low, min(value, high))
 
 
 def test_task1():
@@ -134,51 +143,23 @@ def test_task2():
     print('tests for task 2: ok')
 
 
-def display_game(outputs):
-    x_max = max(x for index, x in enumerate(outputs) if index % 3 == 1)
-    y_max = max(y for index, y in enumerate(outputs) if index % 3 == 0)
-
-    game = np.zeros(shape=(x_max + 1, y_max + 1), dtype=int)
-    for index in range(0, len(outputs), 3):
-        y, x, symbol = outputs[index], outputs[index + 1], outputs[index + 2]
-        if y == -1 and x == 0:
-            print(f'score: {symbol}')
-        game[x, y] = symbol
-    for x in range(x_max + 1):
-        for y in range(y_max + 1):
-            if game[x, y] == TILE.EMPTY:
-                print(' ', end='')
-            else:
-                print(game[x, y], end='')
-        print()
-
-
 def solve_task2():
     program = [line.rstrip('\n') for line in fileinput.input()][0]
     interpreter = IntCodeInterpreter(program)
+    interpreter.memory[0] = 2
     while True:
         try:
-            interpreter.memory[0] = 2
             interpreter.execute()
         except IndexError:
-            # display_game(interpreter.outputs)
-            for index in reversed(range(0, len(interpreter.outputs), 3)):
-                if interpreter.outputs[index + 2] == TILE.BALL:
-                    ball = (interpreter.outputs[index], interpreter.outputs[index + 1])
-                    break
-            for index in reversed(range(0, len(interpreter.outputs), 3)):
-                if interpreter.outputs[index + 2] == TILE.PADDLE:
-                    paddle = (interpreter.outputs[index], interpreter.outputs[index + 1])
-                    break
-            direction = max(-1, min(ball[0] - paddle[0], 1))
-            interpreter.inputs.append(direction)
+            ball = find_last_tile(interpreter.outputs, lambda tile: tile.symbol == TILE.BALL)
+            paddle = find_last_tile(interpreter.outputs, lambda tile: tile.symbol == TILE.PADDLE)
+            paddle_direction = clamp(ball.y - paddle.y, -1, 1)
+            interpreter.inputs.append(paddle_direction)
         else:
             break
-    for index in reversed(range(0, len(interpreter.outputs), 3)):
-        y, x, symbol = interpreter.outputs[index], interpreter.outputs[index + 1], interpreter.outputs[index + 2]
-        if y == -1 and x == 0:
-            final_score = symbol
-            break
+
+    tile = find_last_tile(interpreter.outputs, lambda tile: tile.x == 0 and tile.y == -1)
+    final_score = tile.symbol
     print(f'answer to task 2: {final_score}')
 
 
